@@ -1,0 +1,29 @@
+{
+  "name": "d3-performance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "chance": "^1.1.7",
+    "d3": "^6.7.0",
+    "stats.js": "^0.17.0"
+  },
+  "devDependencies": {
+    "vite": "^2.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openwayne/d3-performance.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/openwayne/d3-performance/issues"
+  },
+  "homepage": "https://github.com/openwayne/d3-performance#readme"
+}
