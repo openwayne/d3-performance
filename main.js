@@ -7,7 +7,7 @@ const chance = new Chance(Math.random);
 
 const div = document.createElement('div');
 div.style =
-  'width: 100px; height: 100px; position: fixed; top: 1px; right: 1px; color: white; background: red; z-index: 100000';
+  'width: 100px; height: 100px; position: fixed; top: 1px; right: 200px; color: white; background: red; z-index: 100000';
 document.body.appendChild(div);
 
 let globalStats = new stats();
@@ -310,9 +310,10 @@ function draw(data) {
     .attr('font-size', '11px')
     .attr('user-select', 'none');
 
-  let d = Date.now() - start;
-
-  div.innerHTML = '首次渲染: ' + d;
+  requestAnimationFrame(() => {
+    let d = Date.now() - start;
+    div.innerHTML = '首次渲染: ' + d;
+  });
 }
 
 function test1() {
@@ -369,4 +370,4 @@ function test5() {
   draw(data);
 }
 
-test5();
+test4();
