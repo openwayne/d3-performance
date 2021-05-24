@@ -2,7 +2,6 @@ import stats from 'stats.js';
 import * as d3 from 'd3';
 import worldcup from './worldcup';
 import Chance from 'chance';
-
 const chance = new Chance(Math.random);
 
 const div = document.createElement('div');
@@ -26,6 +25,17 @@ appPanel.id = 'app';
 document.body.appendChild(appPanel);
 
 let last = Date.now();
+let startTime;
+
+window.onload = function () {
+  let end = Date.now();
+  console.log('All resources finished loading!', end, end - startTime);
+
+  requestAnimationFrame(() => {
+    let d = Date.now() - startTime;
+    div.innerHTML = '首次渲染: ' + d;
+  });
+};
 
 const stating = () => {
   globalStats.begin();
@@ -37,6 +47,7 @@ const stating = () => {
 
   last = Date.now();
   globalStats.end();
+
   requestAnimationFrame(stating);
 };
 
@@ -250,6 +261,19 @@ function draw(data) {
   }
 
   let start = Date.now();
+  startTime = start;
+  console.log('start draw!', start);
+
+  let observer = new MutationObserver(() => {
+    let end = Date.now();
+    console.log('observer', end, end - start);
+  });
+  let options = {
+    childList: true,
+    attributes: true,
+    subtree: true,
+  };
+
   const width = 800;
   const height = 800;
   // 绘图？
@@ -260,6 +284,8 @@ function draw(data) {
     .attr('stroke-width', 2);
 
   svg.call(enableDragFunc(0));
+
+  observer.observe(document.getElementById('app'), options);
 
   lines = svg.append('g');
 
@@ -309,11 +335,6 @@ function draw(data) {
     .text((d) => d.olabel)
     .attr('font-size', '11px')
     .attr('user-select', 'none');
-
-  requestAnimationFrame(() => {
-    let d = Date.now() - start;
-    div.innerHTML = '首次渲染: ' + d;
-  });
 }
 
 function test1() {
