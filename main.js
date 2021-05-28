@@ -213,9 +213,10 @@ const canvasTest = () => {
   }
 };
 
-function draw(data) {
-  let cache = null;
+function draw(data, useForce) {
   let lines = null;
+
+  let cache = null;
   function enableDragFunc(dragType) {
     return d3
       .drag()
@@ -337,17 +338,21 @@ function draw(data) {
     .attr('user-select', 'none');
 }
 
-function test1() {
+function test1(useforce) {
   fetch(
     'https://gw.alipayobjects.com/os/basement_prod/da5a1b47-37d6-44d7-8d10-f3e046dabf82.json',
   )
     .then((res) => res.json())
     .then((data) => {
-      draw(data);
+      data.edges.forEach((item, i) => {
+        item.startPoint = data.nodes.find((e) => e.id === item.source);
+        item.endPoint = data.nodes.find((e) => e.id === item.target);
+      });
+      useforce ? drawForce1(data) : draw(data, true);
     });
 }
 
-function test2() {
+function test2(useforce) {
   fetch(
     'https://gw.alipayobjects.com/os/bmw-prod/f0b6af53-7013-40ea-ae12-a24c89a0f960.json',
   )
@@ -357,28 +362,28 @@ function test2() {
         item.startPoint = data.nodes.find((e) => e.id === item.source);
         item.endPoint = data.nodes.find((e) => e.id === item.target);
       });
-      draw(data);
+      useforce ? drawForce1(data) : draw(data, true);
     });
 }
 
-function test3() {
+function test3(useforce) {
   const data = generateData(25000, 10000);
   data.edges.forEach((item, i) => {
     item.startPoint = data.nodes.find((e) => e.id === item.source);
     item.endPoint = data.nodes.find((e) => e.id === item.target);
   });
-  draw(data);
+  useforce ? drawForce1(data) : draw(data, true);
 }
-function test4() {
+function test4(useforce) {
   const data = generateData(50000, 20000);
   data.edges.forEach((item, i) => {
     item.startPoint = data.nodes.find((e) => e.id === item.source);
     item.endPoint = data.nodes.find((e) => e.id === item.target);
   });
-  draw(data);
+  useforce ? drawForce1(data) : draw(data, true);
 }
 
-function test5() {
+function test5(useforce) {
   const data = worldcup;
   data.nodes.forEach((item) => {
     item.olabel = item.label + item.title;
@@ -388,7 +393,108 @@ function test5() {
     item.startPoint = data.nodes.find((e) => e.id === item.source);
     item.endPoint = data.nodes.find((e) => e.id === item.target);
   });
-  draw(data);
+  useforce ? drawForce1(data) : draw(data, true);
 }
 
-test4();
+const width = 800;
+const height = 800;
+
+const drag = (simulation) => {
+  function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  }
+
+  function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+
+  return d3
+    .drag()
+    .on('start', dragstarted)
+    .on('drag', dragged)
+    .on('end', dragended);
+};
+function drawForce1(data) {
+  const width = 800;
+  const height = 800;
+  const svg = d3
+    .select('#app')
+    .append('svg')
+    .attr('viewBox', [0, 0, width, height]);
+
+  const link = svg
+    .append('g')
+    .attr('stroke', '#999')
+    .attr('stroke-opacity', 0.6)
+    .selectAll('line')
+    .data(data.edges)
+    .join('line');
+
+  const simulation = d3
+    .forceSimulation(data.nodes)
+    .force(
+      'link',
+      d3
+        .forceLink(link)
+        .id((d) => d.id)
+        .distance(0)
+        .strength(1),
+    )
+
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('x', d3.forceX(width / 2).strength(0.1))
+    .force('y', d3.forceY(height / 2).strength(0.1))
+    .force('charge', d3.forceManyBody().strength(-50));
+
+  const node = svg
+    .append('g')
+    .attr('fill', '#fff')
+    .attr('stroke', '#000')
+    .attr('stroke-width', 1.5)
+    .selectAll('circle')
+    .data(data.nodes)
+    .join('circle')
+    .attr('fill', (d) => (d.children ? null : '#000'))
+    .attr('stroke', (d) => (d.children ? null : '#fff'))
+    .attr('r', 5)
+    .call(drag(simulation));
+
+  node.append('title').text((d) => d.olabel);
+  simulation.on('tick', () => {
+    var u = d3
+      .select('svg')
+      .selectAll('circle')
+      .data(data.nodes)
+      .join('circle')
+      .attr('r', 5)
+      .attr('cx', function (d) {
+        return d.x;
+      })
+      .attr('cy', function (d) {
+        return d.y;
+      });
+
+    link
+      .attr('x1', (d) => {
+        return d.startPoint.x;
+      })
+      .attr('y1', (d) => d.startPoint.y)
+      .attr('x2', (d) => d.endPoint.x)
+      .attr('y2', (d) => d.endPoint.y);
+
+    node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+  });
+
+  //invalidation.then(() => simulation.stop());
+}
+
+test5(true);
